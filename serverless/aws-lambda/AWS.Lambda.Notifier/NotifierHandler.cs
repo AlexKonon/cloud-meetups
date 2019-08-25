@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using AWS.Lambda.Notifier.Domain;
@@ -33,7 +34,7 @@ namespace AWS.Lambda.Notifier
             {
                 var telegramService =_serviceProvider.GetService<ITelegramService>();
 
-                await telegramService.SendChanelMessage(request.Content);
+                await telegramService.SendChanelMessageAsync(request.Content, CancellationToken.None);
             }
             catch (Exception)
             {

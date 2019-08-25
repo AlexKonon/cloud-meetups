@@ -2,21 +2,24 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.Lambda.Core;
+using Microsoft.Extensions.Logging;
 
-namespace AWS.Lambda.Notifier.Http
+namespace Azure.Function.Notifier.Http
 {
     public sealed class ApiCollaborator : IApiCollaborator
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpRequestFactory _httpRequestFactory;
+        private readonly ILogger<ApiCollaborator> _logger;
 
         public ApiCollaborator(
             IHttpClientFactory httpClientFactory,
-            IHttpRequestFactory httpRequestFactory)
+            IHttpRequestFactory httpRequestFactory,
+            ILogger<ApiCollaborator> logger)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _httpRequestFactory = httpRequestFactory ?? throw new ArgumentNullException(nameof(httpRequestFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public Task PostAsync(
@@ -51,25 +54,26 @@ namespace AWS.Lambda.Notifier.Http
                     }
                 }
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException ex)
             {
-                LambdaLogger.Log($"Provided http request could not be empty, HttpClient={clientType}, Uri={uri}");
+                _logger.LogError($"Provided http request could not be empty, HttpClient={clientType}, Uri={uri}", ex);
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                LambdaLogger.Log($"The request message was already sent, HttpClient={clientType}, Uri={uri}");
+                _logger.LogError($"The request message was already sent, HttpClient={clientType}, Uri={uri}", ex);
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException ex)
             {
-                LambdaLogger.Log($"The request sending has been failed, HttpClient={clientType}, Uri={uri}");
+                _logger.LogError($"The request sending has been failed, HttpClient={clientType}, Uri={uri}", ex);
             }
-            catch(OperationCanceledException ex)
+            catch (OperationCanceledException ex)
             {
-                LambdaLogger.Log($"An operation was canceled, HttpClient={clientType}, Uri={uri}");
+                _logger.LogError($"An operation was canceled, HttpClient={clientType}, Uri={uri}", ex);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                LambdaLogger.Log($"An error occured while trying to send [POST] request, HttpClient={clientType}, Uri={uri}");
+                _logger.LogError(
+                    $"An error occured while trying to send [POST] request, HttpClient={clientType}, Uri={uri}", ex);
             }
         }
     }

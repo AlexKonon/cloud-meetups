@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AWS.Lambda.Notifier.Configuration;
-using AWS.Lambda.Notifier.Factories;
-using AWS.Lambda.Notifier.Http;
+using Azure.Function.Notifier.Configuration;
+using Azure.Function.Notifier.Factories;
+using Azure.Function.Notifier.Http;
 
-namespace AWS.Lambda.Notifier.Services
+namespace Azure.Function.Notifier.Services
 {
     public sealed class TelegramService : ITelegramService
     {
-        private readonly ILambdaConfiguration _lambdaConfiguration;
+        private readonly IFunctionConfiguration _functionConfiguration;
         private readonly ITelegramBotMessageFactory _telegramBotMessageFactory;
         private readonly IApiCollaborator _apiCollaborator;
 
         public TelegramService(
-            ILambdaConfiguration lambdaConfiguration,
+            IFunctionConfiguration functionConfiguration,
             ITelegramBotMessageFactory telegramBotMessageFactory,
             IApiCollaborator apiCollaborator)
         {
-            _lambdaConfiguration = lambdaConfiguration ?? throw new ArgumentNullException(nameof(lambdaConfiguration));
+            _functionConfiguration = functionConfiguration ?? throw new ArgumentNullException(nameof(functionConfiguration));
             _telegramBotMessageFactory = telegramBotMessageFactory ?? throw new ArgumentNullException(nameof(telegramBotMessageFactory));
             _apiCollaborator = apiCollaborator ?? throw new ArgumentNullException(nameof(apiCollaborator));
         }
@@ -33,9 +33,9 @@ namespace AWS.Lambda.Notifier.Services
 
         private async Task DoSendChanelMessageAsync(string message, CancellationToken cancellationToken)
         {
-            var uri = $"/{_lambdaConfiguration.BotId}/sendMessage";
+            var uri = $"/{_functionConfiguration.BotId}/sendMessage";
 
-            var telegramBotMessage = _telegramBotMessageFactory.Create(_lambdaConfiguration.ChanelName, message);
+            var telegramBotMessage = _telegramBotMessageFactory.Create(_functionConfiguration.ChanelName, message);
 
             await _apiCollaborator.PostAsync(HttpClientType.Telegram, uri, telegramBotMessage, cancellationToken);
         }

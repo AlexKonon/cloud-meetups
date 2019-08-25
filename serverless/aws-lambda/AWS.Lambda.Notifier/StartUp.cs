@@ -23,11 +23,11 @@ namespace AWS.Lambda.Notifier
             services.AddSingleton(lambdaConfiguration);
 
             services.AddTransient<ITelegramService, TelegramService>();
-            services.AddTransient<ITelegramBotMessageFactory, TelegramBotMessageFactory>();
+            services.AddSingleton<ITelegramBotMessageFactory, TelegramBotMessageFactory>();
 
             services.AddTransient<IApiCollaborator, ApiCollaborator>();
-            services.AddTransient<IHttpRequestFactory, HttpRequestFactory>();
-            services.AddTransient<IStreamHttpContentFactory, StreamHttpContentFactory>();
+            services.AddSingleton<IHttpRequestFactory, HttpRequestFactory>();
+            services.AddSingleton<IStreamHttpContentFactory, StreamHttpContentFactory>();
 
             services.AddHttpClient(HttpClientType.Telegram.ToString(), client =>
             {
