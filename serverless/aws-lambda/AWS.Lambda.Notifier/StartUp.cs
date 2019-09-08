@@ -4,7 +4,9 @@ using System.Net.Http.Headers;
 using AWS.Lambda.Notifier.Configuration;
 using AWS.Lambda.Notifier.Factories;
 using AWS.Lambda.Notifier.Http;
+using AWS.Lambda.Notifier.Operation;
 using AWS.Lambda.Notifier.Services;
+using AWS.Lambda.Notifier.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,8 +24,12 @@ namespace AWS.Lambda.Notifier
 
             services.AddSingleton(lambdaConfiguration);
 
+            services.AddTransient<ITelegramNotificationSendOperation, TelegramNotificationSendOperation>();
+            services.AddSingleton<IApiGatewayProxyRequestValidator, ApiGatewayProxyRequestValidator>();
+            services.AddSingleton<ILambdaIncomeRequestFactory, LambdaIncomeRequestFactory>();
             services.AddTransient<ITelegramService, TelegramService>();
             services.AddSingleton<ITelegramBotMessageFactory, TelegramBotMessageFactory>();
+            services.AddSingleton<IApiGatewayProxyResponseFactory, ApiGatewayProxyResponseFactory>();
 
             services.AddTransient<IApiCollaborator, ApiCollaborator>();
             services.AddSingleton<IHttpRequestFactory, HttpRequestFactory>();

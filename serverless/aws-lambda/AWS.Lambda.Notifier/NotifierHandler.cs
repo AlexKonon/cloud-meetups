@@ -1,9 +1,9 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
-using AWS.Lambda.Notifier.Domain;
-using AWS.Lambda.Notifier.Services;
+using AWS.Lambda.Notifier.Factories;
+using AWS.Lambda.Notifier.Operation;
 using Microsoft.Extensions.DependencyInjection;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -18,28 +18,25 @@ namespace AWS.Lambda.Notifier
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
-
         public NotifierHandler() : this(StartUp.Container.BuildServiceProvider())
         {
         }
 
-        public async Task LambdaEntry(LambdaIncomeRequest request, ILambdaContext context)
+        public async Task<APIGatewayProxyResponse> LambdaEntry(
+            APIGatewayProxyRequest apiGatewayProxyRequest,
+            ILambdaContext context)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            if (apiGatewayProxyRequest == null)
+                throw new ArgumentNullException(nameof(apiGatewayProxyRequest));
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            try
-            {
-                var telegramService =_serviceProvider.GetService<ITelegramService>();
+            var operation = _serviceProvider.GetService<ITelegramNotificationSendOperation>();
+            var responseFactory = _serviceProvider.GetService<IApiGatewayProxyResponseFactory>();
 
-                await telegramService.SendChanelMessageAsync(request.Content, CancellationToken.None);
-            }
-            catch (Exception)
-            {
-                LambdaLogger.Log($"An error occured while trying to send Telegram notification, RequestId={context.AwsRequestId}");
-            }
+            var operationResult = await operation.ExecuteAsync(apiGatewayProxyRequest);
+
+            return responseFactory.Create(operationResult);
         }
     }
 }

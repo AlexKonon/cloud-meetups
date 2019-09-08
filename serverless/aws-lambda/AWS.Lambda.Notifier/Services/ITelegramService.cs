@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace AWS.Lambda.Notifier.Services
 {
-    interface ITelegramService
+    public interface ITelegramService
     {
         Task SendChanelMessageAsync(string message, CancellationToken cancellationToken);
     }
